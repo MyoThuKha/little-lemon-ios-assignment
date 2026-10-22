@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct Onboarding: View {
-  private enum Step: Hashable { case email, review }
+  private enum Step: Hashable { case lastName, email, review }
 
   @AppStorage("isLoggedIn") private var isLoggedIn = false
   @State private var firstName = ""
@@ -17,8 +17,8 @@ struct Onboarding: View {
         page(number: 1)
           .navigationTitle("Registration")
           .navigationDestination(for: Step.self) { step in
-            page(number: step == .email ? 2 : 3)
-              .navigationTitle(step == .email ? "Your email" : "Review profile")
+            page(number: step == .lastName ? 2 : step == .email ? 3 : 4)
+              .navigationTitle(step == .lastName ? "Your last name" : step == .email ? "Your email" : "Review profile")
               .navigationBarBackButtonHidden()
               .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -49,16 +49,18 @@ struct Onboarding: View {
             .resizable().scaledToFit().frame(height: 44)
             .frame(maxWidth: .infinity)
             .accessibilityLabel("Little Lemon")
-          Text("Step \(number) of 3")
+          Text("Step \(number) of 4")
             .font(.subheadline.weight(.semibold)).foregroundStyle(Brand.green)
           if number == 1 {
             Text("Welcome to Little Lemon").font(.title2.bold())
-            Text("Let’s start with your name.").foregroundStyle(.secondary)
+            Text("Let’s start with your first name.").foregroundStyle(.secondary)
             TextField("First name", text: $firstName)
               .textContentType(.givenName).accessibilityIdentifier("firstName")
+          } else if number == 2 {
+            Text("What is your last name?").font(.largeTitle.bold())
             TextField("Last name", text: $lastName)
               .textContentType(.familyName).accessibilityIdentifier("lastName")
-          } else if number == 2 {
+          } else if number == 3 {
             Text("How can we reach you?").font(.largeTitle.bold())
             Text("Add an email address for your local profile.").foregroundStyle(.secondary)
             TextField("Email", text: $email)
@@ -86,18 +88,20 @@ struct Onboarding: View {
       .scrollDismissesKeyboard(.interactively)
       Button {
         if number == 1 {
-          path.append(.email)
+          path.append(.lastName)
         } else if number == 2 {
+          path.append(.email)
+        } else if number == 3 {
           path.append(.review)
         } else {
           register()
         }
       } label: {
-        Text(number == 3 ? "Register" : "Next").frame(maxWidth: .infinity)
+        Text(number == 4 ? "Register" : "Next").frame(maxWidth: .infinity)
       }
-      .accessibilityIdentifier(number == 3 ? "register" : "next")
+      .accessibilityIdentifier(number == 4 ? "register" : "next")
       .buttonStyle(.borderedProminent).controlSize(.large)
-      .disabled(number == 1 ? !hasName : !validProfile)
+      .disabled(number == 1 ? firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty : number == 2 ? !hasName : !validProfile)
       .padding().background(.regularMaterial)
     }
     .navigationBarTitleDisplayMode(.inline)
